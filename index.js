@@ -13,6 +13,11 @@ exports.urlSigner = function(key, secret, options){
                   .update(message)
                   .digest('base64');
   };
+  var getSignature = function(verb, fname, bucket, epo) {
+    var str = verb + '\n\n\n' + epo + '\n' + '/' + bucket + (fname[0] === '/'?'':'/') + fname;
+
+    return hmacSha1(str);
+  };
 
   var url = function (fname, bucket) {
       if (subdomain) {
@@ -30,9 +35,7 @@ exports.urlSigner = function(key, secret, options){
 
       var epo = Math.floor(expires.getTime()/1000);
 
-      var str = verb + '\n\n\n' + epo + '\n' + '/' + bucket + (fname[0] === '/'?'':'/') + fname;
-
-      var hashed = hmacSha1(str);
+      var hashed = getSignature(verb, fname, bucket, epo);
 
       var urlRet = url(fname, bucket) +
         '?Expires=' + epo +
@@ -41,7 +44,8 @@ exports.urlSigner = function(key, secret, options){
 
       return urlRet;
 
-    }
+    },
+    getSignature : getSignature
   };
 
 };
