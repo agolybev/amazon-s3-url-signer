@@ -28,19 +28,29 @@ exports.urlSigner = function(key, secret, options){
   };
 
   return {
-    getUrl : function(verb, fname, bucket, expiresInMinutes){
+    getUrl : function(verb, fname, bucket, expiresInMinutes, optContentDisposition){
       var expires = new Date();
+
+      var fname4Sign;
+      if (optContentDisposition) {
+        fname4Sign = fname + '?response-content-disposition=' + optContentDisposition;
+      } else {
+        fname4Sign = fname;
+      }
 
       expires.setMinutes(expires.getMinutes() + expiresInMinutes);
 
       var epo = Math.floor(expires.getTime()/1000);
 
-      var hashed = getSignature(verb, fname, bucket, epo);
+      var hashed = getSignature(verb, fname4Sign, bucket, epo);
 
       var urlRet = url(fname, bucket) +
         '?Expires=' + epo +
         '&AWSAccessKeyId=' + key +
         '&Signature=' + encodeURIComponent(hashed);
+      if (optContentDisposition) {
+        urlRet += '&response-content-disposition=' + encodeURIComponent(optContentDisposition);
+      }
 
       return urlRet;
 
